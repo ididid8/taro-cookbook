@@ -21,7 +21,7 @@ export default class DishDetail extends Component<any, any> {
     const {id, pn, menu} = this.$router.params
     Taro.showLoading({title: '加载中...'})
     Taro.request({
-      url: 'http://apis.juhe.cn/cook/query.php',
+      url: 'https://apis.juhe.cn/cook/query.php',
       data: {
         menu: menu,
         key: 'ecf1ede8427c51e926bef642ce307664',

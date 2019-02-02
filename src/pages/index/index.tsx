@@ -1,135 +1,157 @@
-import Taro, { Component, Config } from '@tarojs/taro'
-import { ScrollView } from '@tarojs/components'
-import { AtSearchBar, AtToast } from 'taro-ui'
+import Taro, {Component, Config} from '@tarojs/taro'
+import {View, Text} from '@tarojs/components'
+import { AtSearchBar, AtTag } from 'taro-ui'
 import './index.scss'
 import Dish from '../../components/dish/dish'
 
-export default class Index extends Component <any, any> {
+const HotWord = ['大虾', '酱牛肉', '丸子', '烤肉', '涮羊肉']
 
-  /**
-   * 指定config的类型声明为: Taro.Config
-   *
-   * 由于 typescript 对于 object 类型推导只能推出 Key 的基本类型
-   * 对于像 navigationBarTextStyle: 'black' 这样的推导出的类型是 string
-   * 提示和声明 navigationBarTextStyle: 'black' | 'white' 类型冲突, 需要显示声明类型
-   */
+const selectWords = ['排骨', '肘子', '汤', '牛肉', '凉菜', '生菜', '寿司', '锅包肉', '豆角', '小鸡']
+
+export default class Index extends Component <any, any> {
   config: Config = {
-    navigationBarTitleText: '首页',
+    navigationBarTitleText: '爱吃美食',
     navigationBarTextStyle: 'black'
   }
 
-  constructor(props:any) {
+  constructor (props:any) {
     super(props)
     this.state = {
       value: '',
-      dishData: [],
-      curIndex: 0,
-      totalNum: 0,
-      showLowerMessage: false,
-      windowHeight: 0,
+      selectDishs: [],
     }
   }
 
   componentWillMount () {
-    // 适配设备，计算屏幕高度
-    Taro.getSystemInfo().then((res:any) => {
-      const windowHeight = res.windowHeight
-      console.log(windowHeight)
-      this.setState({
-        windowHeight
+    let selectDishs = []
+    Taro.showLoading({title: '加载中...'})
+    selectWords.map((word:any) => {
+      Taro.request({
+        url: 'https://apis.juhe.cn/cook/query.php',
+        data: {
+          menu: word,
+          key: 'ecf1ede8427c51e926bef642ce307664',
+        }
+      }).then((res:any) => {
+        if (res) {
+          const {data:resData={}} = res
+          const {result={}} = resData
+          const {data=[]} = result
+          if (data.length) {
+            let dishData = res.data.result.data[0]
+            dishData.menu = word
+            dishData.pn = 0
+            selectDishs = selectDishs.concat(dishData)
+          }
+        }
+
+
+        if (selectDishs.length == selectWords.length) {
+          Taro.hideLoading()
+          this.setState({
+            selectDishs
+          })
+        }
       })
     })
   }
 
-  componentDidMount () { }
-
-  componentWillUnmount () { }
-
-  componentDidShow () { }
-
-  componentDidHide () { }
-
   onChange (value:any) {
     this.setState({
-      value: value,
+      value,
     })
   }
 
   onActionClick () {
-    Taro.showLoading({title: '加载中...'})
-    Taro.request({
-      url: 'http://apis.juhe.cn/cook/query.php',
-      data: {
-        menu: this.state.value,
-        key: 'ecf1ede8427c51e926bef642ce307664',
-      }
-    }).then((res:any) => {
-      Taro.hideLoading()
-      if (res.data.reason == 'Success') {
-        this.setState({
-          dishData: res.data.result.data,
-          totalNum: res.data.result.totalNum,
-          curIndex: 0,
-        })
-      }
-    })
-  }
-
-  onScrollToLower () {
-    const { totalNum, curIndex } = this.state
-    console.log(totalNum, curIndex)
-    if (curIndex + 30 >= totalNum) {
-      this.setState({
-        showLowerMessage: true
+    // TODO: 跳转到菜单搜索页面，并且携带参数去
+    if (this.state.value) {
+      Taro.navigateTo({
+        url: `/pages/search/index?menu=${this.state.value}`
       })
-      console.log('---------')
-      return
     }
-    Taro.showLoading({title: '加载中...'})
-    Taro.request({
-      url: 'http://apis.juhe.cn/cook/query.php',
-      data: {
-        menu: this.state.value,
-        key: 'ecf1ede8427c51e926bef642ce307664',
-        pn: curIndex + 30
-      }
-    }).then((res:any) => {
-      Taro.hideLoading()
-      if (res.data.reason == 'Success') {
-        this.setState({
-          dishData:  this.state.dishData.concat(res.data.result.data),
-          curIndex: curIndex + 30,
-        })
-      }
+  }
+
+  onTagClick (tag:any) {
+    console.log(tag)
+    // TODO: 跳转到菜单搜索页面，并且带点击关键词
+    Taro.navigateTo({
+      url: `/pages/search/index?menu=${tag.name}`
     })
   }
 
-  onDishClick (id:any) {
+  onDishClick (id:any, pn:any, menu:any) {
     Taro.navigateTo({
-      url: `/pages/dish_detail/index?id=${id}&pn=${this.state.curIndex}&menu=${this.state.value}`
+      url: `/pages/dish_detail/index?id=${id}&pn=${pn}&menu=${menu}`
     })
   }
 
   render () {
-    const {showLowerMessage} = this.state
+    const {selectDishs=[]} = this.state
     return (
-      <ScrollView
-        className='index'
-        style={{height: `${this.state.windowHeight}px`}}
-        scrollY={true}
-        enableBackToTop={true}
-        lowerThreshold={10}
-        onScrollToLower={this.onScrollToLower.bind(this)}
-      >
-        <AtSearchBar
-          showActionButton value={this.state.value} onChange={this.onChange.bind(this)} onActionClick={this.onActionClick.bind(this)}
-          placeholder={'搜你想吃的'}
-        />
-        {
-          this.state.dishData.map((dish:any, index:number) => <Dish data={dish} key={index} onDishClick={this.onDishClick.bind(this, dish.id)} />)
-        }
-        <AtToast text={'不能再拉了，到底了！'} isOpened={showLowerMessage} />
-      </ScrollView>
+      <View>
+        <View className={'search-bar'}>
+          <AtSearchBar
+            showActionButton value={this.state.value} onChange={this.onChange.bind(this)} onActionClick={this.onActionClick.bind(this)}
+            placeholder={'搜你想吃的'}
+          />
+        </View>
+
+        <View className={'hot'}>
+          <View className={'hot-text'}>
+            <Text
+              style={{
+                textAlign: 'center',
+                fontWeight: 'bold',
+                display: 'block',
+                marginTop: '30px',
+                marginBottom: '20px',
+              }}
+            >
+              — 热门搜索 —
+            </Text>
+          </View>
+          {
+            HotWord.map((word:any, index:number) => {
+              return (
+                <AtTag
+                  className={'hot-tag'}
+                  key={index}
+                  circle={true}
+                  onClick={this.onTagClick.bind(this, word)}
+                  name={word}
+                >
+                  {word}
+                </AtTag>
+              )
+            })
+          }
+        </View>
+
+        <View className={'select'}>
+          <View className={'select-text'}>
+            <Text
+              style={{
+                display: 'block',
+                fontWeight: 'bold',
+                textAlign: 'center',
+                marginTop: '20px',
+                marginBottom: '20px',
+              }}
+            >
+              — 精选推荐 —
+            </Text>
+          </View>
+          <View className={'select-dish'}>
+            {
+              selectDishs.map((dish:any, index:number) => {
+                return (
+                  <Dish data={dish} key={index} onDishClick={this.onDishClick.bind(this, dish.id, dish.pn, dish.menu)} />
+                )
+              })
+            }
+          </View>
+        </View>
+      </View>
     )
   }
 }

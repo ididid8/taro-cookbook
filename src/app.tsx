@@ -23,6 +23,7 @@ class App extends Component {
       'pages/index/index',
       'pages/classify/index',
       'pages/dish_detail/index',
+      'pages/search/index',
       // 'pages/collect/index'
     ],
     window: {

@@ -31,8 +31,8 @@ export default class DishDetail extends Component<any, any> {
 
   render () {
     const {dish={}} = this.props
-    const {ingredients='', burden='', steps=[]} = dish
-    const ingredient_list = ingredients.split(',')
+    const {ingredients:ingredient='', burden='', steps=[]} = dish
+    const ingredients = ingredient.split(';')
     const burdens = burden.split(';')
     return (
       <View>
@@ -44,19 +44,26 @@ export default class DishDetail extends Component<any, any> {
         </View>
 
         <View className={'ingredients'}>
-          <Text style={{fontWeight: 'bold', textAlign: 'center', display: 'block', marginBottom: '20px'}}>—主料—</Text>
-          <View className={'at-row'} style={{borderWidth: '0 0 1px 0', borderColor: 'rgba(0, 0, 0, 0.2)', borderStyle: 'solid', width: `${this.state.listWidth}px`, marginLeft: '30px', marginRight: '10px', paddingBottom: '7px', paddingTop: '7px'}}>
-            <View className={'at-col at-col-6'}>
-              <Text style={{textAlign: 'left', display: 'block'}}>{ingredient_list[0]}</Text>
-            </View>
-            <View className={'at-col at-col-6'}>
-              <Text style={{textAlign: 'right', display: 'block'}}>{ingredient_list[1]}</Text>
-            </View>
-          </View>
+          <Text style={{fontWeight: 'bold', textAlign: 'center', display: 'block', marginBottom: '20px'}}>— 主料 —</Text>
+          {
+            ingredients.map((ingredient:any, index:number) => {
+              return (
+                <View key={index} className={'at-row'} style={{borderWidth: '0 0 1px 0', borderColor: 'rgba(0, 0, 0, 0.2)', borderStyle: 'solid', width: `${this.state.listWidth}px`, marginLeft: '30px', marginRight: '10px', paddingBottom: '7px', paddingTop: '7px'}}>
+                  <View className={'at-col at-col-6'}>
+                    <Text style={{textAlign: 'left', display: 'block'}}>{ingredient.split(',')[0]}</Text>
+                  </View>
+                  <View className={'at-col at-col-6'}>
+                    <Text style={{textAlign: 'right', display: 'block'}}>{ingredient.split(',')[1]}</Text>
+                  </View>
+                </View>
+              )
+            })
+          }
+
         </View>
 
         <View className={'burden'}>
-          <Text style={{fontWeight: 'bold', textAlign: 'center', display: 'block', marginBottom: '20px', marginTop: '10px'}}>—辅料—</Text>
+          <Text style={{fontWeight: 'bold', textAlign: 'center', display: 'block', marginBottom: '20px', marginTop: '10px'}}>— 辅料 —</Text>
           {
             burdens.map((burden: any, index: number) => {
               const burden_list = burden.split(',')
@@ -74,7 +81,7 @@ export default class DishDetail extends Component<any, any> {
           }
         </View>
         <View>
-          <Text style={{marginBottom: '20px', marginTop: '30px', fontWeight: 'bold', textAlign: 'center', display: 'block'}}>—烹饪步骤—</Text>
+          <Text style={{marginBottom: '20px', marginTop: '30px', fontWeight: 'bold', textAlign: 'center', display: 'block'}}>— 烹饪步骤 —</Text>
         </View>
         {
           steps.map((step:any, index:number) => {
