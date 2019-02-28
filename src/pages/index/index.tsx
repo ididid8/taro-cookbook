@@ -2,11 +2,9 @@ import Taro, {Component, Config} from '@tarojs/taro'
 import {View, Text} from '@tarojs/components'
 import { AtSearchBar, AtTag } from 'taro-ui'
 import './index.scss'
-import Dish from '../../components/dish/dish'
+import SelectedDish from '../../components/selected_dish/selected_dish'
 
 const HotWord = ['大虾', '酱牛肉', '丸子', '烤肉', '涮羊肉']
-
-const selectWords = ['排骨', '肘子', '汤', '牛肉', '凉菜', '生菜', '寿司', '锅包肉', '豆角', '小鸡']
 
 export default class Index extends Component <any, any> {
   config: Config = {
@@ -18,40 +16,33 @@ export default class Index extends Component <any, any> {
     super(props)
     this.state = {
       value: '',
-      selectDishs: [],
+      selectedDishs: [],
+      windowWidth: 0,
+      windowHeight: 0,
     }
   }
 
   componentWillMount () {
-    let selectDishs = []
+    // 适配设备，计算屏幕高度
+    Taro.getSystemInfo().then((res:any) => {
+      const windowWidth = res.windowWidth
+      const windowHeight = res.windowHeight
+      console.log(windowWidth)
+      this.setState({
+        windowWidth,
+        windowHeight,
+      })
+    })
+
     Taro.showLoading({title: '加载中...'})
-    selectWords.map((word:any) => {
-      Taro.request({
-        url: 'https://apis.juhe.cn/cook/query.php',
-        data: {
-          menu: word,
-          key: 'ecf1ede8427c51e926bef642ce307664',
-        }
-      }).then((res:any) => {
-        if (res) {
-          const {data:resData={}} = res
-          const {result={}} = resData
-          const {data=[]} = result
-          if (data.length) {
-            let dishData = res.data.result.data[0]
-            dishData.menu = word
-            dishData.pn = 0
-            selectDishs = selectDishs.concat(dishData)
-          }
-        }
-
-
-        if (selectDishs.length == selectWords.length) {
-          Taro.hideLoading()
-          this.setState({
-            selectDishs
-          })
-        }
+    Taro.request({
+      url: 'https://biubiubiubiubiubiu.com/index'
+    }).then((res:any) => {
+      Taro.hideLoading()
+      const selected = res.data.Selected
+      console.log(selected)
+      this.setState({
+        selectedDishs: selected
       })
     })
   }
@@ -79,14 +70,17 @@ export default class Index extends Component <any, any> {
     })
   }
 
-  onDishClick (id:any, pn:any, menu:any) {
+  onDishClick (dish: any) {
+    const {url} = dish
+    const id = url.split('/')[2].split('.')[0]
+    console.log(id)
     Taro.navigateTo({
-      url: `/pages/dish_detail/index?id=${id}&pn=${pn}&menu=${menu}`
+      url: `/pages/cookbook_detail/index?id=${id}`
     })
   }
 
   render () {
-    const {selectDishs=[]} = this.state
+    const {selectedDishs=[]} = this.state
     return (
       <View>
         <View className={'search-bar'}>
@@ -143,9 +137,10 @@ export default class Index extends Component <any, any> {
           </View>
           <View className={'select-dish'}>
             {
-              selectDishs.map((dish:any, index:number) => {
+              selectedDishs.map((dish:any, index:number) => {
                 return (
-                  <Dish data={dish} key={index} onDishClick={this.onDishClick.bind(this, dish.id, dish.pn, dish.menu)} />
+                  <SelectedDish key={index} onDishClick={this.onDishClick.bind(this, dish)} dish={dish} windowWidth={this.state.windowWidth} />
+
                 )
               })
             }

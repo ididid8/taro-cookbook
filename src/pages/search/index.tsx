@@ -104,7 +104,6 @@ export default class Index extends Component <any, any> {
       this.setState({
         showLowerMessage: true
       })
-      console.log('---------')
       return
     }
     Taro.showLoading({title: '加载中...'})
@@ -128,7 +127,7 @@ export default class Index extends Component <any, any> {
 
   onDishClick (id:any) {
     Taro.navigateTo({
-      url: `/pages/dish_detail/index?id=${id}&pn=${this.state.curIndex}&menu=${this.state.menu}`
+      url: `/pages/dish_detail/index?id=${id}`
     })
   }
 

@@ -24,6 +24,7 @@ class App extends Component {
       'pages/classify/index',
       'pages/dish_detail/index',
       'pages/search/index',
+      'pages/cookbook_detail/index',
       // 'pages/collect/index'
     ],
     window: {

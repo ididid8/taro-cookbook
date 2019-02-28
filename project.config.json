@@ -4,7 +4,7 @@
 	"description": "豆果美食微信小程序",
 	"appid": "wxea5608c2adafe08b",
 	"setting": {
-		"urlCheck": true,
+		"urlCheck": false,
 		"es6": false,
 		"postcss": false,
 		"minified": false,

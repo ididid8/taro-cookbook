@@ -1,14 +1,13 @@
 import Taro, {Component, Config} from '@tarojs/taro'
-import { View } from '@tarojs/components'
-import Dish from '../../components/dish_detail/dish_detail'
+import {View} from '@tarojs/components'
+import CookBook from  '../../components/cookbook_detail/cookbook_detail'
 
-
-export default class DishDetail extends Component<any, any> {
-
+export default class CookbokDetail extends Component <any, any> {
   config: Config = {
     navigationBarTitleText: '菜谱详情',
     navigationBarTextStyle: 'black'
   }
+
   constructor (props:any) {
     super(props)
     this.state = {
@@ -17,30 +16,25 @@ export default class DishDetail extends Component<any, any> {
   }
 
   componentWillMount () {
-    console.log(this.$router.params)
+    // 发起请求，获取详情数据
     const {id} = this.$router.params
     Taro.showLoading({title: '加载中...'})
     Taro.request({
-      url: 'https://apis.juhe.cn/cook/queryid',
-      data: {
-        key: 'ecf1ede8427c51e926bef642ce307664',
-        id: id
-      }
+      url: `https://biubiubiubiubiubiu.com/cookbook/${id}`
     }).then((res:any) => {
       Taro.hideLoading()
-      const dish = res.data.result.data[0]
       this.setState({
-        dish
+        dish: res.data
       })
     })
   }
 
   render () {
-    const {dish={}} = this.state
     return (
       <View>
-        <Dish dish={dish} onDishClick={this.props.onDishClick} />
+        <CookBook dish={this.state.dish} />
       </View>
+
     )
   }
 }
