@@ -3,6 +3,8 @@ import { ScrollView } from '@tarojs/components'
 import { AtSearchBar, AtToast } from 'taro-ui'
 import './index.scss'
 import Dish from '../../components/dish/dish'
+import Cookbook from '../../components/cookbook/cookbook'
+
 
 export default class Index extends Component <any, any> {
 
@@ -28,6 +30,8 @@ export default class Index extends Component <any, any> {
       showLowerMessage: false,
       windowHeight: 0,
       menu: '',
+      repic: [],
+      page: {},
     }
   }
 
@@ -45,20 +49,15 @@ export default class Index extends Component <any, any> {
     this.setState({menu, value: menu})
     Taro.showLoading({title: '加载中...'})
     Taro.request({
-      url: 'https://apis.juhe.cn/cook/query.php',
-      data: {
-        menu: menu,
-        key: 'ecf1ede8427c51e926bef642ce307664',
-      }
+      url: `https://biubiubiubiubiubiu.com/search/${menu}`,
     }).then((res:any) => {
+      const {Page:page, Repic: repic} = res.data
+
       Taro.hideLoading()
-      if (res.data.reason == 'Success') {
-        this.setState({
-          dishData: res.data.result.data,
-          totalNum: res.data.result.totalNum,
-          curIndex: 0,
-        })
-      }
+      this.setState({
+        page,
+        repic,
+      })
     })
   }
 
@@ -80,27 +79,22 @@ export default class Index extends Component <any, any> {
     this.setState({menu: this.state.value})
     Taro.showLoading({title: '加载中...'})
     Taro.request({
-      url: 'https://apis.juhe.cn/cook/query.php',
-      data: {
-        menu: this.state.value,
-        key: 'ecf1ede8427c51e926bef642ce307664',
-      }
+      url: `https://biubiubiubiubiubiu.com/search/${this.state.value}`,
     }).then((res:any) => {
+      const {Page:page, Repic: repic} = res.data
+
       Taro.hideLoading()
-      if (res.data.reason == 'Success') {
-        this.setState({
-          dishData: res.data.result.data,
-          totalNum: res.data.result.totalNum,
-          curIndex: 0,
-        })
-      }
+      this.setState({
+        page,
+        repic,
+      })
     })
   }
 
   onScrollToLower () {
-    const { totalNum, curIndex } = this.state
-    console.log(totalNum, curIndex)
-    if (curIndex + 30 >= totalNum) {
+    const { page } = this.state
+    const {current, total} = page
+    if (current + 20 > total) {
       this.setState({
         showLowerMessage: true
       })
@@ -108,26 +102,25 @@ export default class Index extends Component <any, any> {
     }
     Taro.showLoading({title: '加载中...'})
     Taro.request({
-      url: 'https://apis.juhe.cn/cook/query.php',
-      data: {
-        menu: this.state.value,
-        key: 'ecf1ede8427c51e926bef642ce307664',
-        pn: curIndex + 30
-      }
+      url: `https://biubiubiubiubiubiu.com/search/${this.state.value}/${ current + 20}`,
     }).then((res:any) => {
+      const {Page:page, Repic: repic} = res.data
+      const {repic: curRepic} = this.state
+
       Taro.hideLoading()
-      if (res.data.reason == 'Success') {
-        this.setState({
-          dishData:  this.state.dishData.concat(res.data.result.data),
-          curIndex: curIndex + 30,
-        })
-      }
+      const newRepic = [...curRepic, ...repic]
+      console.log(newRepic)
+      this.setState({
+        page,
+        repic: newRepic,
+      })
     })
   }
 
-  onDishClick (id:any) {
+  onCookbookClick (url:any) {
+    const id = url.split('/')[2].split('.')[0]
     Taro.navigateTo({
-      url: `/pages/dish_detail/index?id=${id}`
+      url: `/pages/cookbook_detail/index?id=${id}`
     })
   }
 
@@ -147,7 +140,7 @@ export default class Index extends Component <any, any> {
           placeholder={'搜你想吃的'}
         />
         {
-          this.state.dishData.map((dish:any, index:number) => <Dish data={dish} key={index} onDishClick={this.onDishClick.bind(this, dish.id)} />)
+          this.state.repic.map((cookbook:any, index:number) => <Cookbook cookbook={cookbook} key={index} onCookbookClick={this.onCookbookClick} />)
         }
         <AtToast text={'不能再拉了，到底了！'} isOpened={showLowerMessage} />
       </ScrollView>
